@@ -968,6 +968,24 @@
               />
               {errors.apellidos && <span className="error-msg">{errors.apellidos}</span>}
             </div>
+            <div className={`field ${errors.area ? "error" : ""}`}>
+              <label>Área a la que pertenece <span className="req">*</span></label>
+              <input
+                value={data.area}
+                onChange={e => onChange({ area: e.target.value })}
+                placeholder="Ej. Cirugía cardiovascular, Enfermería"
+              />
+              {errors.area && <span className="error-msg">{errors.area}</span>}
+            </div>
+            <div className={`field ${errors.cargo ? "error" : ""}`}>
+              <label>Cargo <span className="req">*</span></label>
+              <input
+                value={data.cargo}
+                onChange={e => onChange({ cargo: e.target.value })}
+                placeholder="Escriba su cargo"
+              />
+              {errors.cargo && <span className="error-msg">{errors.cargo}</span>}
+            </div>
             <div className={`field full ${errors.cedula ? "error" : ""}`}>
               <label>Número de cédula / identificación del carnet <span className="req">*</span></label>
               <input
@@ -1223,6 +1241,7 @@
           <div className="section-label">Resumen del solicitante</div>
           <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 20 }}>
             <strong>{registration.nombres} {registration.apellidos}</strong> · C.C. {registration.cedula}<br />
+            Área: {registration.area} · Cargo: {registration.cargo}<br />
             {registration.center} · {registration.city}, {registration.department}
           </div>
 
@@ -1262,7 +1281,7 @@
     function App() {
       const [phase, setPhase] = useState("registration");
       const [registration, setRegistration] = useState({
-        nombres: "", apellidos: "", cedula: "",
+        nombres: "", apellidos: "", area: "", cargo: "", cedula: "",
         department: "", city: "", center: "", consent: false
       });
       const [errors, setErrors] = useState({});
@@ -1292,6 +1311,8 @@
         const e = {};
         if (!registration.nombres.trim()) e.nombres = "Campo obligatorio";
         if (!registration.apellidos.trim()) e.apellidos = "Campo obligatorio";
+        if (!registration.area.trim()) e.area = "Indique el área a la que pertenece";
+        if (!registration.cargo.trim()) e.cargo = "Indique su cargo";
         if (!registration.cedula.trim()) e.cedula = "Campo obligatorio";
         else if (registration.cedula.length < 5) e.cedula = "Número de identificación inválido";
         if (!registration.department) e.department = "Seleccione un departamento";
@@ -1333,6 +1354,8 @@
           radicado: code,
           nombres: registration.nombres,
           apellidos: registration.apellidos,
+          area: registration.area,
+          cargo: registration.cargo,
           cedula: registration.cedula,
           departamento: registration.department,
           ciudad: registration.city,
@@ -1363,7 +1386,7 @@
       const handleReset = () => {
         setPhase("registration");
         setRegistration({
-          nombres: "", apellidos: "", cedula: "",
+          nombres: "", apellidos: "", area: "", cargo: "", cedula: "",
           department: "", city: "", center: "", consent: false
         });
         setErrors({});
