@@ -986,18 +986,7 @@
               />
               {errors.cargo && <span className="error-msg">{errors.cargo}</span>}
             </div>
-            <div className={`field full ${errors.cedula ? "error" : ""}`}>
-              <label>Número de cédula / identificación del carnet <span className="req">*</span></label>
-              <input
-                value={data.cedula}
-                onChange={e => onChange({ cedula: e.target.value.replace(/\D/g, "") })}
-                placeholder="Solo números, sin puntos ni espacios"
-                inputMode="numeric"
-              />
-              <span className="hint">Solo números, sin puntos ni espacios.</span>
-              {errors.cedula && <span className="error-msg">{errors.cedula}</span>}
-            </div>
-          </div>
+           </div>
 
           <div className="section-label">2. Ubicación e institución</div>
           <div className="form-grid">
@@ -1240,7 +1229,7 @@
 
           <div className="section-label">Resumen del solicitante</div>
           <div style={{ fontSize: "0.9rem", color: "var(--text-secondary)", lineHeight: 1.7, marginBottom: 20 }}>
-            <strong>{registration.nombres} {registration.apellidos}</strong> · C.C. {registration.cedula}<br />
+            <strong>{registration.nombres} {registration.apellidos}</strong><br />
             Área: {registration.area} · Cargo: {registration.cargo}<br />
             {registration.center} · {registration.city}, {registration.department}
           </div>
@@ -1281,7 +1270,7 @@
     function App() {
       const [phase, setPhase] = useState("registration");
       const [registration, setRegistration] = useState({
-        nombres: "", apellidos: "", area: "", cargo: "", cedula: "",
+        nombres: "", apellidos: "", area: "", cargo: "",
         department: "", city: "", center: "", consent: false
       });
       const [errors, setErrors] = useState({});
@@ -1313,9 +1302,7 @@
         if (!registration.apellidos.trim()) e.apellidos = "Campo obligatorio";
         if (!registration.area.trim()) e.area = "Indique el área a la que pertenece";
         if (!registration.cargo.trim()) e.cargo = "Indique su cargo";
-        if (!registration.cedula.trim()) e.cedula = "Campo obligatorio";
-        else if (registration.cedula.length < 5) e.cedula = "Número de identificación inválido";
-        if (!registration.department) e.department = "Seleccione un departamento";
+         if (!registration.department) e.department = "Seleccione un departamento";
         if (!registration.city) e.city = "Seleccione una ciudad";
         if (!registration.center.trim()) e.center = "Campo obligatorio";
         if (!registration.consent) e.consent = "Debe autorizar el tratamiento de datos";
@@ -1356,8 +1343,7 @@
           apellidos: registration.apellidos,
           area: registration.area,
           cargo: registration.cargo,
-          cedula: registration.cedula,
-          departamento: registration.department,
+           departamento: registration.department,
           ciudad: registration.city,
           centro: registration.center,
           dispositivo: product.name,
@@ -1386,7 +1372,7 @@
       const handleReset = () => {
         setPhase("registration");
         setRegistration({
-          nombres: "", apellidos: "", area: "", cargo: "", cedula: "",
+          nombres: "", apellidos: "", area: "", cargo: "",
           department: "", city: "", center: "", consent: false
         });
         setErrors({});
