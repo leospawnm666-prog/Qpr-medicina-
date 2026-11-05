@@ -1323,19 +1323,54 @@
       };
 
       const handleRadicar = async () => {
-        if (!product) return;
+        if (!product || sending || sent) return;
         setSending(true);
         setSubmitError(null);
+
         const questions = product.questions;
+        const correctCount = questions.filter(q => answers[q.id] === q.correctOptionId).length;
+        const scorePct = Math.round((correctCount / questions.length) * 100);
+        const passed = scorePct >= PASS_THRESHOLD * 100;
+        const code = generateRadicado();
+        const fecha = new Date().toLocaleString("es-CO");
+
+        // Reporte completo: respuesta seleccionada Y respuesta correcta para cada pregunta.
         const details = questions.map((q, i) => {
           const selectedId = answers[q.id];
           const selected = q.options.find(o => o.id === selectedId);
+          const correct = q.options.find(o => o.id === q.correctOptionId);
           const isCorrect = selectedId === q.correctOptionId;
-          return (i + 1) + ". " + q.prompt + "\n   Respuesta: " + (selected?.label || "-") + " (" + (isCorrect ? "Correcta" : "Incorrecta") + ")";
-        }).join("\n\n");
-        const correctCount = questions.filter(q => answers[q.id] === q.correctOptionId).length;
-        const scorePct = Math.round((correctCount / questions.length) * 100);
-        const code = generateRadicado();
+          return [
+            (i + 1) + ". " + q.prompt,
+            "Respuesta seleccionada: " + (selected?.label || "Sin respuesta"),
+            "Respuesta correcta: " + (correct?.label || "No disponible"),
+            "Resultado: " + (isCorrect ? "Correcta" : "Incorrecta"),
+            "Retroalimentación: " + (q.explanation || "No disponible")
+          ].join("\\n");
+        }).join("\\n\\n");
+
+        const report = [
+          "REPORTE DE EVALUACIÓN TÉCNICA",
+          "Radicado: " + code,
+          "Fecha: " + fecha,
+          "",
+          "DATOS DEL PARTICIPANTE",
+          "Nombre: " + registration.nombres + " " + registration.apellidos,
+          "Área: " + registration.area,
+          "Cargo: " + registration.cargo,
+          "Institución: " + registration.center,
+          "Departamento: " + registration.department,
+          "Ciudad: " + registration.city,
+          "",
+          "RESULTADO DE LA EVALUACIÓN",
+          "Producto/capacitación: " + product.name,
+          "Puntaje: " + scorePct + "% (" + correctCount + "/" + questions.length + ")",
+          "Estado: " + (passed ? "APROBADO" : "NO APROBADO"),
+          "",
+          "DETALLE DE RESPUESTAS",
+          details
+        ].join("\\n");
+
         const templateParams = {
           to_email: EMAILJS.toEmail,
           radicado: code,
@@ -1343,27 +1378,34 @@
           apellidos: registration.apellidos,
           area: registration.area,
           cargo: registration.cargo,
-           departamento: registration.department,
+          departamento: registration.department,
           ciudad: registration.city,
           centro: registration.center,
           dispositivo: product.name,
           puntaje: scorePct + "% (" + correctCount + "/" + questions.length + ")",
-          aprobado: scorePct >= PASS_THRESHOLD * 100 ? "Sí" : "No",
+          aprobado: passed ? "Sí" : "No",
           detalle: details,
-          fecha: new Date().toLocaleString("es-CO")
+          fecha,
+          // Variables de cuerpo completo para plantillas EmailJS que usan {{message}} o {{content}}.
+          message: report,
+          content: report,
+          subject: "Evaluación técnica - " + product.name + " - " + code
         };
+
         try {
-          if (window.emailjs) {
-            await window.emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, templateParams);
-          } else {
-            await new Promise(r => setTimeout(r, 1000));
+          if (!window.emailjs || typeof window.emailjs.send !== "function") {
+            throw new Error("La biblioteca EmailJS no está disponible; no se puede confirmar el envío.");
+          }
+          const response = await window.emailjs.send(EMAILJS.serviceId, EMAILJS.templateId, templateParams);
+          if (!response || response.status < 200 || response.status >= 300) {
+            throw new Error("EmailJS no confirmó la entrega de la solicitud.");
           }
           setRadicado(code);
           setSent(true);
         } catch (err) {
-          console.error(err);
+          console.error("Error enviando reporte EmailJS:", err);
           setRadicado(code);
-          setSubmitError("No se pudo enviar el correo. Se generó radicado local. Revise conexión o configuración EmailJS.");
+          setSubmitError("No se pudo confirmar el envío del correo. Sus respuestas siguen en pantalla; revise la configuración de la plantilla EmailJS e intente nuevamente.");
         } finally {
           setSending(false);
         }
